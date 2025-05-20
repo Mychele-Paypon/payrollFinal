@@ -1,20 +1,20 @@
 package org.example;
 
 import javax.swing.table.AbstractTableModel;
+import java.util.ArrayList;
 import java.util.List;
 
 public class EmployeeTableModel extends AbstractTableModel {
     private final String[] columnNames = {
-            "ID", "Name", "Position", "Daily Rate", "Days Present",
-            "Gross Pay", "Pag-IBIG", "PhilHealth", "SSS", "Income Tax", "Deductions", "Net Pay"
+            "ID", "Name", "Position", "Daily Rate", "Days Present", "Days Absent"
     };
 
     private final List<Employee> employees;
     private final List<Payslip> payslips;
 
-    public EmployeeTableModel(List<Employee> employees, List<Payslip> payslips) {
-        this.employees = employees;
-        this.payslips = payslips;
+    public EmployeeTableModel() {
+        this.employees = new ArrayList<>();
+        this.payslips = new ArrayList<>();
     }
 
     @Override
@@ -38,13 +38,13 @@ public class EmployeeTableModel extends AbstractTableModel {
             case 2: return emp.getPosition();
             case 3: return emp.getDailySalary();
             case 4: return emp.getDaysPresent();
-            case 5: return slip.getGrossSalary();
-            case 6: return slip.getPagIbig();
-            case 7: return slip.getPhilHealth();
-            case 8: return slip.getSss();
-            case 9: return slip.getIncomeTax();
-            case 10: return slip.getTotalDeductions();
-            case 11: return slip.getNetPay();
+//            case 5: return slip.getGrossSalary();
+//            case 6: return slip.getPagIbig();
+//            case 7: return slip.getPhilHealth();
+//            case 8: return slip.getSss();
+//            case 9: return slip.getIncomeTax();
+//            case 10: return slip.getTotalDeductions();
+//            case 11: return slip.getNetPay();
             default: return null;
         }
     }
@@ -52,6 +52,11 @@ public class EmployeeTableModel extends AbstractTableModel {
     @Override
     public String getColumnName(int column) {
         return columnNames[column];
+    }
+
+    public void addEmployee(Employee employee){
+        employees.add(employee);
+        fireTableDataChanged();
     }
 }
 

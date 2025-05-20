@@ -10,14 +10,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GUIFrame extends JFrame {
-    JLabel IdLabel, nameLabel, positionLabel, dailysalaryLabel, days_present_Label;
-    JTextField idField, nameField, positionField, dailySalaryField, daysPresentField;
-    JTextArea outputArea;
+    JLabel IdLabel, nameLabel, positionLabel, dailySalaryLabel, days_present_Label, daysAbsentLabel;
+    JTextField idField, nameField, positionField, dailySalaryField, daysPresentField, daysAbsentField;
     PayrollManager payrollManager;
     GridBagLayout layout;
     JButton computeButton, reportButton, payslipButton;
+    JButton addButton, deleteButton, editButton;
     JTable employeeTable;
     JScrollPane tableScrollPane;
+    EmployeeTableModel tableModel;
+
     public GUIFrame(PayrollManager manager) {
         Container container = new Container();
         layout = new GridBagLayout();
@@ -29,41 +31,46 @@ public class GUIFrame extends JFrame {
         positionField = new JTextField(20);
         dailySalaryField = new JTextField(20);
         daysPresentField = new JTextField(20);
-        employeeTable = new JTable();
-        tableScrollPane = new JScrollPane(employeeTable);
-        tableScrollPane.setPreferredSize(new Dimension(1100,300));
-        computeButton = new JButton("Compute Payroll");
+        tableModel = new EmployeeTableModel();
+        employeeTable = new JTable(tableModel);
+        computeButton = new JButton("Payslip");
         reportButton = new JButton("Year-End Report");
         IdLabel = new JLabel("Employee ID: ");
         nameLabel = new JLabel("Name: ");
         positionLabel = new JLabel("Position: ");
-        dailysalaryLabel = new JLabel("Daily Salary");
+        dailySalaryLabel = new JLabel("Daily Rate");
         days_present_Label = new JLabel("Days present: ");
-        payslipButton = new JButton("View Selected Payslip");
-        outputArea = new JTextArea(10, 30);
-        outputArea.setEditable(false);
+        daysAbsentLabel = new JLabel("Days absent: ");
+        daysAbsentField = new JTextField(20);
+        addButton = new JButton("Add");
+        deleteButton = new JButton("Delete");
+        editButton = new JButton("Update");
 
 
         addToCon(container, IdLabel, 0, 0);
-        addToCon(container, idField, 1, 0,2,1);
+        addToCon(container, idField, 1, 0,1,1);
+
+        addToCon(container, daysAbsentLabel, 2,0);
+        addToCon(container, daysAbsentField,3,0,1,1);
 
         addToCon(container, nameLabel, 0, 1);
-        addToCon(container, nameField, 1, 1,2,1);
+        addToCon(container, nameField, 1, 1,1,1);
 
         addToCon(container, positionLabel, 0, 2);
-        addToCon(container, positionField, 1, 2,2,1);
+        addToCon(container, positionField, 1, 2,1,1);
 
-        addToCon(container, dailysalaryLabel, 0, 3);
-        addToCon(container, dailySalaryField, 1, 3,2,1);
+        addToCon(container, dailySalaryLabel, 2, 2);
+        addToCon(container, dailySalaryField, 3, 2,1,1);
 
-        addToCon(container, days_present_Label, 0, 4);
-        addToCon(container, daysPresentField, 1, 4,2,1);
+        addToCon(container, days_present_Label, 2, 1);
+        addToCon(container, daysPresentField, 3, 1,1,1);
 
         addToCon(container, computeButton, 0, 5);
         addToCon(container, reportButton, 1, 5);
-        addToCon(container, tableScrollPane, 0, 6, 5, 5);
-        addToCon(container, payslipButton, 0, 13, 2, 1);
-        addToCon(container, new JScrollPane(outputArea), 0, 6, 2, 3);
+        addToCon(container, addButton, 2,5,1,1);
+        addToCon(container, deleteButton, 3,5,1,1);
+        addToCon(container, editButton, 4,5,1,1);
+        addToCon(container, new JScrollPane(employeeTable), 0, 6, 5, 5);
 
 
         this.setVisible(true);
@@ -71,12 +78,25 @@ public class GUIFrame extends JFrame {
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
         this.payrollManager = manager;
 
-
-        computeButton.addActionListener(new ActionListener() {
+        addButton.addActionListener(new ActionListener() {
+            @Override
             public void actionPerformed(ActionEvent e) {
-                computePayroll();
+
+                String name = nameField.getText();
+                String id = idField.getText();
+                String position = positionField.getText();
+                double dailySalary = Double.parseDouble(dailySalaryField.getText());
+                double daysPresent = Double.parseDouble(daysPresentField.getText());
+                double daysAbsent = Double.parseDouble(daysAbsentField.getText());
+
+                Employee employee = new Employee(id, name, position, dailySalary, daysPresent, daysAbsent);
+                tableModel.addEmployee(employee);
+
+
+
             }
         });
+
 
         payslipButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -153,8 +173,9 @@ public class GUIFrame extends JFrame {
             String position = positionField.getText();
             double dailySalary = Double.parseDouble(dailySalaryField.getText());
             double daysPresent = Double.parseDouble(daysPresentField.getText());
+            double daysAbsent = Double.parseDouble(daysAbsentField.getText());
 
-            Employee employee = new Employee(id, name, position, dailySalary, daysPresent);
+            Employee employee = new Employee(id, name, position, dailySalary, daysPresent, daysAbsent);
             payrollManager.addEmployee(employee);
 
             // 🔹 Create payslip
@@ -165,20 +186,21 @@ public class GUIFrame extends JFrame {
                 FireStoreConnection firestore = new FireStoreConnection();
                 firestore.addEmployee(employee, payslip); // Save to Firestore
 
+
                 // 🔹 Now fetch all records again and update the table
-                List<Object[]> records = firestore.getPayrollRecords();
-
-                String[] columnNames = {
-                        "ID", "Name", "Position", "Daily Salary", "Days Present",
-                        "Gross Pay", "Pag-IBIG", "PhilHealth", "SSS", "Income Tax",
-                        "Deductions", "Net Pay"
-                };
-
-                DefaultTableModel model = new DefaultTableModel(columnNames, 0);
-                for (Object[] row : records) {
-                    model.addRow(row);
-                }
-                employeeTable.setModel(model);
+//                List<Object[]> records = firestore.getPayrollRecords();
+//
+//                String[] columnNames = {
+//                        "ID", "Name", "Position", "Daily Salary", "Days Present",
+//                        "Gross Pay", "Pag-IBIG", "PhilHealth", "SSS", "Income Tax",
+//                        "Deductions", "Net Pay"
+//                };
+//
+//                DefaultTableModel model = new DefaultTableModel(columnNames, 0);
+//                for (Object[] row : records) {
+//                    model.addRow(row);
+//                }
+//                employeeTable.setModel(model);
 
             } catch (Exception ex) {
                 ex.printStackTrace();
