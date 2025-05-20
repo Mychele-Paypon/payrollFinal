@@ -48,28 +48,28 @@ public class GUIFrame extends JFrame {
 
 
         addToCon(container, IdLabel, 0, 0);
-        addToCon(container, idField, 1, 0,1,1);
+        addToCon(container, idField, 1, 0, 1, 1);
 
-        addToCon(container, daysAbsentLabel, 2,0);
-        addToCon(container, daysAbsentField,3,0,1,1);
+        addToCon(container, daysAbsentLabel, 2, 0);
+        addToCon(container, daysAbsentField, 3, 0, 1, 1);
 
         addToCon(container, nameLabel, 0, 1);
-        addToCon(container, nameField, 1, 1,1,1);
+        addToCon(container, nameField, 1, 1, 1, 1);
 
         addToCon(container, positionLabel, 0, 2);
-        addToCon(container, positionField, 1, 2,1,1);
+        addToCon(container, positionField, 1, 2, 1, 1);
 
         addToCon(container, dailySalaryLabel, 2, 2);
-        addToCon(container, dailySalaryField, 3, 2,1,1);
+        addToCon(container, dailySalaryField, 3, 2, 1, 1);
 
         addToCon(container, days_present_Label, 2, 1);
-        addToCon(container, daysPresentField, 3, 1,1,1);
+        addToCon(container, daysPresentField, 3, 1, 1, 1);
 
         addToCon(container, computeButton, 0, 5);
         addToCon(container, reportButton, 1, 5);
-        addToCon(container, addButton, 2,5,1,1);
-        addToCon(container, deleteButton, 3,5,1,1);
-        addToCon(container, editButton, 4,5,1,1);
+        addToCon(container, addButton, 2, 5, 1, 1);
+        addToCon(container, deleteButton, 3, 5, 1, 1);
+        addToCon(container, editButton, 4, 5, 1, 1);
         addToCon(container, new JScrollPane(employeeTable), 0, 6, 5, 5);
 
 
@@ -81,19 +81,27 @@ public class GUIFrame extends JFrame {
         addButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                try {
+                    String name = nameField.getText();
+                    String id = idField.getText();
+                    String position = positionField.getText();
+                    double dailySalary = Double.parseDouble(dailySalaryField.getText());
+                    double daysPresent = Double.parseDouble(daysPresentField.getText());
+                    double daysAbsent = Double.parseDouble(daysAbsentField.getText());
 
-                String name = nameField.getText();
-                String id = idField.getText();
-                String position = positionField.getText();
-                double dailySalary = Double.parseDouble(dailySalaryField.getText());
-                double daysPresent = Double.parseDouble(daysPresentField.getText());
-                double daysAbsent = Double.parseDouble(daysAbsentField.getText());
+                    Employee employee = new Employee(id, name, position, dailySalary, daysPresent, daysAbsent);
+                    tableModel.addEmployee(employee);
 
-                Employee employee = new Employee(id, name, position, dailySalary, daysPresent, daysAbsent);
-                tableModel.addEmployee(employee);
+                    FireStoreConnection firestore = new FireStoreConnection();
+                    firestore.addEmployeeToFirestore(employee);
 
+                    JOptionPane.showMessageDialog(null, "Employee added and uploaded to Firebase!");
 
-
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(null, "Failed to add employee: " + ex.getMessage());
+                }
+                clearInputFields();
             }
         });
 
@@ -125,7 +133,7 @@ public class GUIFrame extends JFrame {
                     sb.append(String.format("Net Pay: ₱%,.2f\n", payslip.getNetPay()));
                     sb.append("=============================================\n");
 
-                    new PayslipViewFrame(sb.toString());  // show in new window
+                    new PayslipViewFrame(sb.toString());
                 } else {
                     JOptionPane.showMessageDialog(null, "Please select an employee from the table.", "No Selection", JOptionPane.WARNING_MESSAGE);
                 }
@@ -167,51 +175,16 @@ public class GUIFrame extends JFrame {
 
 
     private void computePayroll() {
-        try {
-            String id = idField.getText();
-            String name = nameField.getText();
-            String position = positionField.getText();
-            double dailySalary = Double.parseDouble(dailySalaryField.getText());
-            double daysPresent = Double.parseDouble(daysPresentField.getText());
-            double daysAbsent = Double.parseDouble(daysAbsentField.getText());
 
-            Employee employee = new Employee(id, name, position, dailySalary, daysPresent, daysAbsent);
-            payrollManager.addEmployee(employee);
+        String id = idField.getText();
+        String name = nameField.getText();
+        String position = positionField.getText();
+        double dailySalary = Double.parseDouble(dailySalaryField.getText());
+        double daysPresent = Double.parseDouble(daysPresentField.getText());
+        double daysAbsent = Double.parseDouble(daysAbsentField.getText());
 
-            // 🔹 Create payslip
-            Payslip payslip = new Payslip(employee);
-
-            // 🔹 Upload to Firestore
-            try {
-                FireStoreConnection firestore = new FireStoreConnection();
-                firestore.addEmployee(employee, payslip); // Save to Firestore
-
-
-                // 🔹 Now fetch all records again and update the table
-//                List<Object[]> records = firestore.getPayrollRecords();
-//
-//                String[] columnNames = {
-//                        "ID", "Name", "Position", "Daily Salary", "Days Present",
-//                        "Gross Pay", "Pag-IBIG", "PhilHealth", "SSS", "Income Tax",
-//                        "Deductions", "Net Pay"
-//                };
-//
-//                DefaultTableModel model = new DefaultTableModel(columnNames, 0);
-//                for (Object[] row : records) {
-//                    model.addRow(row);
-//                }
-//                employeeTable.setModel(model);
-
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                JOptionPane.showMessageDialog(this, "Error uploading or fetching data from Firestore.");
-            }
-
-            clearInputFields();
-
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "Please enter valid numbers for salary and days present.", "Input Error", JOptionPane.ERROR_MESSAGE);
-        }
+        Employee employee = new Employee(id, name, position, dailySalary, daysPresent, daysAbsent);
+        payrollManager.addEmployee(employee);
     }
 
     private void clearInputFields() {
@@ -220,32 +193,9 @@ public class GUIFrame extends JFrame {
         dailySalaryField.setText("");
         positionField.setText("");
         daysPresentField.setText("");
+        daysAbsentField.setText("");
     }
 
-    private void loadPayrollFromFirestore() {
-        try {
-            FireStoreConnection firestore = new FireStoreConnection();
-            List<Object[]> records = firestore.getPayrollRecords();
-
-            String[] columnNames = {
-                    "ID", "Name", "Position", "Daily Salary", "Days Present",
-                    "Gross Pay", "Pag-IBIG", "PhilHealth", "SSS", "Income Tax",
-                    "Deductions", "Net Pay"
-            };
-
-            DefaultTableModel model = new DefaultTableModel(columnNames, 0);
-
-            for (Object[] row : records) {
-                model.addRow(row);
-            }
-
-            employeeTable.setModel(model);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Failed to load payroll data from Firestore.", "Error", JOptionPane.ERROR_MESSAGE);
-        }
-    }
 
     public void addToCon(Container container, Component component, int gridx, int gridy){
         GridBagConstraints constraints = new GridBagConstraints();
@@ -266,3 +216,28 @@ public class GUIFrame extends JFrame {
         container.add(component, constraints);
     }
 }
+
+//   private void loadPayrollFromFirestore() {
+//        try {
+//            FireStoreConnection firestore = new FireStoreConnection();
+//            List<Object[]> records = firestore.getPayrollRecords();
+//
+//            String[] columnNames = {
+//                    "ID", "Name", "Position", "Daily Salary", "Days Present",
+//                    "Gross Pay", "Pag-IBIG", "PhilHealth", "SSS", "Income Tax",
+//                    "Deductions", "Net Pay"
+//            };
+//
+//            DefaultTableModel model = new DefaultTableModel(columnNames, 0);
+//
+//            for (Object[] row : records) {
+//                model.addRow(row);
+//            }
+//
+//            employeeTable.setModel(model);
+//
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            JOptionPane.showMessageDialog(this, "Failed to load payroll data from Firestore.", "Error", JOptionPane.ERROR_MESSAGE);
+//        }
+//    }

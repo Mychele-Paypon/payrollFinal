@@ -38,13 +38,6 @@ public class EmployeeTableModel extends AbstractTableModel {
             case 2: return emp.getPosition();
             case 3: return emp.getDailySalary();
             case 4: return emp.getDaysPresent();
-//            case 5: return slip.getGrossSalary();
-//            case 6: return slip.getPagIbig();
-//            case 7: return slip.getPhilHealth();
-//            case 8: return slip.getSss();
-//            case 9: return slip.getIncomeTax();
-//            case 10: return slip.getTotalDeductions();
-//            case 11: return slip.getNetPay();
             default: return null;
         }
     }
@@ -56,6 +49,10 @@ public class EmployeeTableModel extends AbstractTableModel {
 
     public void addEmployee(Employee employee){
         employees.add(employee);
+        fireTableDataChanged();
+    }
+    public void addAllEmployees(List<Employee> employees) {
+        this.employees.addAll(employees);
         fireTableDataChanged();
     }
 }

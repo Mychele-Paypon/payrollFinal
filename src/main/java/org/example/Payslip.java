@@ -22,11 +22,18 @@ public class Payslip {
     }
 
     // Getters
-    public Employee getEmployee() { return employee; }
-    public double getGrossSalary() { return grossSalary; }
-    public double getPagIbig() { return pagIbig; }
-    public double getPhilHealth() { return philHealth; }
-    public double getSss() { return sss; }
-    public double getIncomeTax() { return incomeTax; }
-    public double getNetPay() { return netPay; }
+    public Employee getEmployee() {
+        return employee; }
+    public double getGrossSalary() {
+        return grossSalary; }
+    public double getPagIbig() {
+        return pagIbig; }
+    public double getPhilHealth() {
+        return philHealth; }
+    public double getSss() {
+        return sss; }
+    public double getIncomeTax() {
+        return incomeTax; }
+    public double getNetPay() {
+        return netPay; }
 }

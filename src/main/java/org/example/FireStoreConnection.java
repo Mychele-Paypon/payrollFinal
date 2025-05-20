@@ -10,12 +10,13 @@ import com.google.firebase.cloud.FirestoreClient;
 import java.io.FileInputStream;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Consumer;
 
 public class FireStoreConnection {
     private Firestore db;
 
     public FireStoreConnection() throws Exception {
-        FileInputStream serviceAccount = new FileInputStream("src/main/java/org/example/ecpe205-evangelio-firebase-adminsdk-fbsvc-361fb645da.json");
+        FileInputStream serviceAccount = new FileInputStream("src/main/java/ecpe205-evangelio-firebase-adminsdk-fbsvc-dc3d3679d8.json");
         FirebaseOptions options = new FirebaseOptions.Builder()
                 .setCredentials(GoogleCredentials.fromStream(serviceAccount))
                 .setDatabaseUrl("https://ecpe205-evangelio-default-rtdb.asia-southeast1.firebasedatabase.app/")
@@ -28,7 +29,46 @@ public class FireStoreConnection {
         this.db = FirestoreClient.getFirestore();
     }
 
-    public List<Object[]> getEmployeeTableRows() throws ExecutionException, InterruptedException {
+    public void addEmployeeToFirestore(Employee employee) {
+        CollectionReference employees = db.collection("Employees");
+
+        Map<String, Object> employeeData = new HashMap<>();
+        employeeData.put("id", employee.getId());
+        employeeData.put("name", employee.getName());
+        employeeData.put("position", employee.getPosition());
+        employeeData.put("dailySalary", employee.getDailySalary());
+        employeeData.put("daysPresent", employee.getDaysPresent());
+        employeeData.put("daysAbsent", employee.getDaysAbsent());
+
+        DocumentReference docRef = employees.document(employee.getId());
+        ApiFuture<WriteResult> result = docRef.set(employeeData);
+    }
+
+    public void addEmployeeListener(Consumer<List<Employee>> callback) {
+        db.collection("Employees").addSnapshotListener((snapshot, error) -> {
+            if (error != null) {
+                error.printStackTrace();
+                return;
+            }
+
+            List<Employee> employees = new ArrayList<>();
+            for (QueryDocumentSnapshot doc : snapshot) {
+                String id = doc.getString("id");
+                String name = doc.getString("name");
+                String position = doc.getString("position");
+                Double dailySalary = doc.getDouble("dailySalary");
+                Double daysPresent = doc.getDouble("daysPresent");
+                Double daysAbsent = doc.getDouble("daysAbsent");
+                Employee emp = new Employee(id,name,position,dailySalary,daysPresent,daysAbsent);
+                employees.add(emp);
+            }
+            callback.accept(employees);
+        });
+    }
+
+
+
+public List<Object[]> getEmployeeTableRows() throws ExecutionException, InterruptedException {
         List<Object[]> rows = new ArrayList<>();
 
         ApiFuture<QuerySnapshot> query = db.collection("Employees").get();
