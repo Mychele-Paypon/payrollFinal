@@ -18,7 +18,7 @@ public class FireStoreConnection {
     private Firestore db;
 
     public FireStoreConnection() throws Exception {
-        FileInputStream serviceAccount = new FileInputStream("src/main/java/org/example/ecpe205-evangelio-firebase-adminsdk-fbsvc-55656005b8.json");
+        FileInputStream serviceAccount = new FileInputStream("src/main/java/org/example/ecpe205-evangelio-firebase-adminsdk-fbsvc-5f87d0cd20.json");
         FirebaseOptions options = new FirebaseOptions.Builder()
                 .setCredentials(GoogleCredentials.fromStream(serviceAccount))
                 .setDatabaseUrl("https://ecpe205-evangelio-default-rtdb.asia-southeast1.firebasedatabase.app/")

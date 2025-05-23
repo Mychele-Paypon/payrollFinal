@@ -101,7 +101,7 @@ public class PayslipViewFrame extends JFrame {
 //        earningArea.append(daysPresent.getText() + "\n");
 //        earningArea.append(grossIncome.getText());
         earningArea.append(String.format("Daily Rate: ₱%.2f\n", emp.getDailySalary()));
-        earningArea.append(String.format("Days Present: ₱%.2f\n", emp.getDaysPresent()));
+        earningArea.append(String.format("Days Present: %.0f\n", emp.getDaysPresent()));
         earningArea.append(String.format("Gross Income: ₱%.2f\n", payslip.getGrossSalary()));
 
         addToContainer(container, new JLabel("====================================================="),0,7,2,1);
