@@ -16,7 +16,7 @@ public class FireStoreConnection {
     private Firestore db;
 
     public FireStoreConnection() throws Exception {
-        FileInputStream serviceAccount = new FileInputStream("src/main/java/ecpe205-evangelio-firebase-adminsdk-fbsvc-dc3d3679d8.json");
+        FileInputStream serviceAccount = new FileInputStream("");
         FirebaseOptions options = new FirebaseOptions.Builder()
                 .setCredentials(GoogleCredentials.fromStream(serviceAccount))
                 .setDatabaseUrl("https://ecpe205-evangelio-default-rtdb.asia-southeast1.firebasedatabase.app/")
@@ -33,59 +33,55 @@ public class FireStoreConnection {
         CollectionReference employees = db.collection("Employees");
 
         Map<String, Object> employeeData = new HashMap<>();
-        employeeData.put("id", employee.getId());
-        employeeData.put("name", employee.getName());
-        employeeData.put("position", employee.getPosition());
-        employeeData.put("dailySalary", employee.getDailySalary());
-        employeeData.put("daysPresent", employee.getDaysPresent());
-        employeeData.put("daysAbsent", employee.getDaysAbsent());
+        employeeData.put("Id", employee.getId());
+        employeeData.put("Name", employee.getName());
+        employeeData.put("Position", employee.getPosition());
+        employeeData.put("Daily Salary", employee.getDailySalary());
+        employeeData.put("Days Present", employee.getDaysPresent());
+        employeeData.put("Days Absent", employee.getDaysAbsent());
 
         DocumentReference docRef = employees.document(employee.getId());
         ApiFuture<WriteResult> result = docRef.set(employeeData);
     }
 
-    public void addEmployeeListener(Consumer<List<Employee>> callback) {
-        db.collection("Employees").addSnapshotListener((snapshot, error) -> {
-            if (error != null) {
-                error.printStackTrace();
-                return;
-            }
+    public List<Employee> getAllEmployeesFromFirestore() throws Exception {
+        List<Employee> employees = new ArrayList<>();
+        CollectionReference employeesCollection = db.collection("Employees");
 
-            List<Employee> employees = new ArrayList<>();
-            for (QueryDocumentSnapshot doc : snapshot) {
-                String id = doc.getString("id");
-                String name = doc.getString("name");
-                String position = doc.getString("position");
-                Double dailySalary = doc.getDouble("dailySalary");
-                Double daysPresent = doc.getDouble("daysPresent");
-                Double daysAbsent = doc.getDouble("daysAbsent");
-                Employee emp = new Employee(id,name,position,dailySalary,daysPresent,daysAbsent);
-                employees.add(emp);
-            }
-            callback.accept(employees);
-        });
-    }
+        ApiFuture<QuerySnapshot> future = employeesCollection.get();
+        QuerySnapshot querySnapshot = future.get();
 
-
-
-public List<Object[]> getEmployeeTableRows() throws ExecutionException, InterruptedException {
-        List<Object[]> rows = new ArrayList<>();
-
-        ApiFuture<QuerySnapshot> query = db.collection("Employees").get();
-        QuerySnapshot querySnapshot = query.get();
-
-        for (DocumentSnapshot document : querySnapshot.getDocuments()) {
-            Object[] row = new Object[] {
-                    document.getString("id"),
-                    document.getString("name"),
-                    document.getString("position"),
-                    document.getDouble("dailySalary"),
-                    document.getDouble("daysPresent")
-            };
-            rows.add(row);
+        for (QueryDocumentSnapshot document : querySnapshot.getDocuments()) {
+            Employee employee = new Employee(
+                    document.getString("Id"),
+                    document.getString("Name"),
+                    document.getString("Position"),
+                    document.getDouble("Daily Salary"),
+                    document.getDouble("Days Present"),
+                    document.getDouble("Days Absent")
+            );
+            employees.add(employee);
         }
 
-        return rows;
+        return employees;
+    }
+
+    public void deleteEmployeeFromFirestore(String employeeId) throws Exception {
+        db.collection("Employees").document(employeeId).delete().get();
+    }
+
+    public void updateEmployeeInFirestore(Employee employee) throws Exception {
+        DocumentReference docRef = db.collection("Employees").document(employee.getId());
+
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("Name", employee.getName());
+        updates.put("Position", employee.getPosition());
+        updates.put("Daily Salary", employee.getDailySalary());
+        updates.put("Days Present", employee.getDaysPresent());
+        updates.put("Days Absent", employee.getDaysAbsent());
+
+        ApiFuture<WriteResult> result = docRef.update(updates);
+        result.get();
     }
 
     public List<Object[]> getPayrollRecords() throws ExecutionException, InterruptedException {
@@ -113,27 +109,5 @@ public List<Object[]> getEmployeeTableRows() throws ExecutionException, Interrup
         }
 
         return records;
-    }
-
-    public void addEmployee(Employee employee, Payslip payslip) throws ExecutionException, InterruptedException {
-        Map<String, Object> data = new LinkedHashMap<>();
-        data.put("id", employee.getId());
-        data.put("name", employee.getName());
-        data.put("position", employee.getPosition());
-        data.put("dailySalary", employee.getDailySalary());
-        data.put("daysPresent", employee.getDaysPresent());
-        data.put("grossPay", employee.computeGrossSalary());
-
-        // Deductions
-        data.put("pagIbig", payslip.getPagIbig());
-        data.put("philHealth", payslip.getPhilHealth());
-        data.put("sss",payslip.getSss());
-        data.put("incomeTax", payslip.getIncomeTax());
-        data.put("deductions", payslip.getTotalDeductions());
-
-        // Net pay
-        data.put("netPay", payslip.getNetPay());
-
-        db.collection("Employees").document(employee.getId()).set(data).get();
     }
 }

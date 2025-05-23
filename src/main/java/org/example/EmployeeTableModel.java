@@ -30,7 +30,7 @@ public class EmployeeTableModel extends AbstractTableModel {
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
         Employee emp = employees.get(rowIndex);
-        Payslip slip = payslips.get(rowIndex);
+//        Payslip slip = payslips.get(rowIndex);
 
         switch (columnIndex) {
             case 0: return emp.getId();
@@ -38,6 +38,7 @@ public class EmployeeTableModel extends AbstractTableModel {
             case 2: return emp.getPosition();
             case 3: return emp.getDailySalary();
             case 4: return emp.getDaysPresent();
+            case 5: return emp.getDaysAbsent();
             default: return null;
         }
     }
@@ -54,6 +55,19 @@ public class EmployeeTableModel extends AbstractTableModel {
     public void addAllEmployees(List<Employee> employees) {
         this.employees.addAll(employees);
         fireTableDataChanged();
+    }
+
+    public Employee getEmployeeAt(int rowIndex) {
+        return employees.get(rowIndex);
+    }
+
+    public void removeEmployeeAt(int rowIndex) {
+        employees.remove(rowIndex);
+        fireTableRowsDeleted(rowIndex, rowIndex);
+    }
+    public void updateEmployeeAt(int rowIndex, Employee updatedEmployee) {
+        employees.set(rowIndex, updatedEmployee);
+        fireTableRowsUpdated(rowIndex, rowIndex);
     }
 }
 

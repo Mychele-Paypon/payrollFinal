@@ -14,11 +14,11 @@ public class GUIFrame extends JFrame {
     JTextField idField, nameField, positionField, dailySalaryField, daysPresentField, daysAbsentField;
     PayrollManager payrollManager;
     GridBagLayout layout;
-    JButton computeButton, reportButton, payslipButton;
+    JButton payslipButton, reportButton;
     JButton addButton, deleteButton, editButton;
     JTable employeeTable;
-    JScrollPane tableScrollPane;
     EmployeeTableModel tableModel;
+    private Employee employeeBeingEdited = null;
 
     public GUIFrame(PayrollManager manager) {
         Container container = new Container();
@@ -33,14 +33,14 @@ public class GUIFrame extends JFrame {
         daysPresentField = new JTextField(20);
         tableModel = new EmployeeTableModel();
         employeeTable = new JTable(tableModel);
-        computeButton = new JButton("Payslip");
+        payslipButton = new JButton("Payslip");
         reportButton = new JButton("Year-End Report");
         IdLabel = new JLabel("Employee ID: ");
         nameLabel = new JLabel("Name: ");
         positionLabel = new JLabel("Position: ");
         dailySalaryLabel = new JLabel("Daily Rate");
-        days_present_Label = new JLabel("Days present: ");
-        daysAbsentLabel = new JLabel("Days absent: ");
+        days_present_Label = new JLabel("Days Present: ");
+        daysAbsentLabel = new JLabel("Days Absent: ");
         daysAbsentField = new JTextField(20);
         addButton = new JButton("Add");
         deleteButton = new JButton("Delete");
@@ -65,7 +65,7 @@ public class GUIFrame extends JFrame {
         addToCon(container, days_present_Label, 2, 1);
         addToCon(container, daysPresentField, 3, 1, 1, 1);
 
-        addToCon(container, computeButton, 0, 5);
+        addToCon(container, payslipButton, 0, 5);
         addToCon(container, reportButton, 1, 5);
         addToCon(container, addButton, 2, 5, 1, 1);
         addToCon(container, deleteButton, 3, 5, 1, 1);
@@ -90,10 +90,11 @@ public class GUIFrame extends JFrame {
                     double daysAbsent = Double.parseDouble(daysAbsentField.getText());
 
                     Employee employee = new Employee(id, name, position, dailySalary, daysPresent, daysAbsent);
-                    tableModel.addEmployee(employee);
 
                     FireStoreConnection firestore = new FireStoreConnection();
                     firestore.addEmployeeToFirestore(employee);
+                    tableModel.addEmployee(employee);
+
 
                     JOptionPane.showMessageDialog(null, "Employee added and uploaded to Firebase!");
 
@@ -105,41 +106,154 @@ public class GUIFrame extends JFrame {
             }
         });
 
-
-        payslipButton.addActionListener(new ActionListener() {
+        deleteButton.addActionListener(new ActionListener() {
+            @Override
             public void actionPerformed(ActionEvent e) {
-                int selectedRow = employeeTable.getSelectedRow();
-                if (selectedRow >= 0) {
-                    Payslip payslip = payrollManager.getPayslips().get(selectedRow);
-                    Employee emp = payrollManager.getEmployees().get(selectedRow);
+                int[] selectedRows = employeeTable.getSelectedRows();
 
-                    StringBuilder sb = new StringBuilder();
-                    sb.append("=============================================\n");
-                    sb.append("             EMPLOYEE PAYSLIP\n");
-                    sb.append("=============================================\n");
-                    sb.append("Employee: ").append(emp.getName()).append("\n");
-                    sb.append("ID: ").append(emp.getId()).append("\n");
-                    sb.append("Position: ").append(emp.getPosition()).append("\n\n");
-                    sb.append(String.format("Daily Rate: ₱%,.2f\n", emp.getDailySalary()));
-                    sb.append(String.format("Days Present: %.1f\n", emp.getDaysPresent()));
-                    sb.append("---------------------------------------------\n");
-                    sb.append(String.format("Gross Salary: ₱%,.2f\n", payslip.getGrossSalary()));
-                    sb.append(String.format("SSS: ₱%,.2f\n", payslip.getSss()));
-                    sb.append(String.format("PhilHealth: ₱%,.2f\n", payslip.getPhilHealth()));
-                    sb.append(String.format("Pag-IBIG: ₱%,.2f\n", payslip.getPagIbig()));
-                    sb.append(String.format("Withholding Tax: ₱%,.2f\n", payslip.getIncomeTax()));
-                    sb.append(String.format("Total Deductions: ₱%,.2f\n",
-                            payslip.getSss() + payslip.getPhilHealth() + payslip.getPagIbig() + payslip.getIncomeTax()));
-                    sb.append(String.format("Net Pay: ₱%,.2f\n", payslip.getNetPay()));
-                    sb.append("=============================================\n");
+                if (selectedRows.length == 0) {
+                    JOptionPane.showMessageDialog(null,
+                            "Please select at least one employee to delete",
+                            "No Selection", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
 
-                    new PayslipViewFrame(sb.toString());
-                } else {
-                    JOptionPane.showMessageDialog(null, "Please select an employee from the table.", "No Selection", JOptionPane.WARNING_MESSAGE);
+                try {
+                    FireStoreConnection firestore = new FireStoreConnection();
+                    EmployeeTableModel model = (EmployeeTableModel) employeeTable.getModel();
+
+                    for (int i = selectedRows.length - 1; i >= 0; i--) {
+                        int modelRow = employeeTable.convertRowIndexToModel(selectedRows[i]);
+                        Employee employee = model.getEmployeeAt(modelRow);
+                        firestore.deleteEmployeeFromFirestore(employee.getId());
+                        model.removeEmployeeAt(modelRow);
+                    }
+
+                    JOptionPane.showMessageDialog(null,
+                            "Successfully deleted " + selectedRows.length + " employee(s)",
+                            "Deletion Complete", JOptionPane.INFORMATION_MESSAGE);
+
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(null,
+                            "Error deleting employees: " + ex.getMessage(),
+                            "Deletion Error", JOptionPane.ERROR_MESSAGE);
                 }
 
             }
         });
+
+        editButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (editButton.getText().equals("Update")) {
+                    int selectedRow = employeeTable.getSelectedRow();
+
+                    if (selectedRow == -1) {
+                        JOptionPane.showMessageDialog(null,
+                                "Please select an employee to edit",
+                                "No Selection", JOptionPane.WARNING_MESSAGE);
+                        return;
+                    }
+                    selectedRow = employeeTable.getSelectedRow();
+
+                    if (selectedRow == -1) {
+                        JOptionPane.showMessageDialog(null,
+                                "Please select an employee to edit",
+                                "No Selection", JOptionPane.WARNING_MESSAGE);
+                        return;
+                    }
+
+                    int modelRow = employeeTable.convertRowIndexToModel(selectedRow);
+                    employeeBeingEdited = tableModel.getEmployeeAt(modelRow);
+
+                    // Pre-fill fields
+                    idField.setText(employeeBeingEdited.getId());
+                    nameField.setText(employeeBeingEdited.getName());
+                    positionField.setText(employeeBeingEdited.getPosition());
+                    dailySalaryField.setText(String.valueOf(employeeBeingEdited.getDailySalary()));
+                    daysPresentField.setText(String.valueOf(employeeBeingEdited.getDaysPresent()));
+                    daysAbsentField.setText(String.valueOf(employeeBeingEdited.getDaysAbsent()));
+
+                    idField.setEnabled(false);
+                    editButton.setText("Save");
+
+                } else {
+
+                    try {
+                        int selectedRow = employeeTable.getSelectedRow();
+                        if (selectedRow == -1) throw new Exception("No employee selected");
+
+                        int modelRow = employeeTable.convertRowIndexToModel(selectedRow);
+                        Employee currentEmployee = tableModel.getEmployeeAt(modelRow);
+
+                        Employee updatedEmployee = new Employee(
+                                currentEmployee.getId(), // ID remains the same
+                                nameField.getText(),
+                                positionField.getText(),
+                                Double.parseDouble(dailySalaryField.getText()),
+                                Double.parseDouble(daysPresentField.getText()),
+                                Double.parseDouble(daysAbsentField.getText())
+                        );
+
+                        // Update in Firestore
+                        FireStoreConnection firestore = new FireStoreConnection();
+                        firestore.updateEmployeeInFirestore(updatedEmployee);
+
+                        // Update in local table
+                        tableModel.updateEmployeeAt(modelRow, updatedEmployee);
+
+                        clearInputFields();
+                        editButton.setText("Update");
+                        idField.setEnabled(true);
+
+                        JOptionPane.showMessageDialog(null,
+                                "Employee updated successfully!",
+                                "Success", JOptionPane.INFORMATION_MESSAGE);
+
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                        JOptionPane.showMessageDialog(null,
+                                "Error updating employee: " + ex.getMessage(),
+                                "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            }
+        });
+
+
+        payslipButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int selectedRow = employeeTable.getSelectedRow();
+                if (selectedRow >= 0) {
+                    try {
+                        int modelRow = employeeTable.convertRowIndexToModel(selectedRow);
+                        Employee emp = tableModel.getEmployeeAt(modelRow);
+
+                        // Generate fresh payslip instead of trying to get from list
+                        Payslip payslip = new Payslip(emp); // Create new Payslip directly
+
+                        // Create and show the enhanced PayslipViewFrame
+                        new PayslipViewFrame(emp, payslip).setVisible(true);
+
+                    } catch (IndexOutOfBoundsException ex) {
+                        JOptionPane.showMessageDialog(null,
+                                "Employee data is incomplete. Please check employee records.",
+                                "Data Error", JOptionPane.ERROR_MESSAGE);
+                    } catch (Exception ex) {
+                        JOptionPane.showMessageDialog(null,
+                                "Error generating payslip: " + ex.getMessage(),
+                                "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(null,
+                            "Please select an employee first",
+                            "No Selection", JOptionPane.WARNING_MESSAGE);
+                }
+            }
+        });
+
 
         reportButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {

@@ -6,34 +6,49 @@ public class Payslip {
 
     public Payslip(Employee employee) {
         this.employee = employee;
-        grossSalary = employee.computeGrossSalary();
-
-        pagIbig = Deductions.computePagIbig();
-        philHealth = Deductions.computePhilHealth(grossSalary);
-        sss = Deductions.computeSSS(grossSalary);
-        incomeTax = Deductions.computeIncomeTax(grossSalary, pagIbig, philHealth, sss);
-
-        double totalDeduction = pagIbig + philHealth + sss + incomeTax;
-        netPay = grossSalary - totalDeduction;
+        this.grossSalary = getGrossSalary();
+        this.pagIbig = getPagIbig();
+        this.philHealth = getPhilHealth();
+        this.sss = getSss();
+        this.incomeTax = getIncomeTax();
+        this.netPay = getNetPay();
     }
+
+//    public Payslip(Employee employee) {
+//        this.employee = employee;
+//        grossSalary = employee.computeGrossSalary();
+//
+//        pagIbig = Deductions.computePagIbig();
+//        philHealth = Deductions.computePhilHealth(grossSalary);
+//        sss = Deductions.computeSSS(grossSalary);
+//        incomeTax = Deductions.computeIncomeTax(grossSalary, pagIbig, philHealth, sss);
+//
+//        double totalDeduction = pagIbig + philHealth + sss + incomeTax;
+//        netPay = grossSalary - totalDeduction;
+//    }
 
     public double getTotalDeductions() {
         return sss + philHealth + pagIbig + incomeTax;
     }
 
-    // Getters
     public Employee getEmployee() {
         return employee; }
     public double getGrossSalary() {
-        return grossSalary; }
+        return employee.getDailySalary() * employee.getDaysPresent();
+    }
     public double getPagIbig() {
-        return pagIbig; }
+        return Deductions.computePagIbig();
+    }
     public double getPhilHealth() {
-        return philHealth; }
+        return Deductions.computePhilHealth(grossSalary);
+    }
     public double getSss() {
-        return sss; }
+        return Deductions.computeSSS(grossSalary);
+    }
     public double getIncomeTax() {
-        return incomeTax; }
+        return Deductions.computeIncomeTax(grossSalary, pagIbig, philHealth, sss);
+    }
     public double getNetPay() {
-        return netPay; }
+        return grossSalary - (sss + philHealth + pagIbig + incomeTax);
+    }
 }
