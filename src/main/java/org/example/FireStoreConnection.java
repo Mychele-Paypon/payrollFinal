@@ -10,12 +10,13 @@ import com.google.firebase.cloud.FirestoreClient;
 import java.io.FileInputStream;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Consumer;
 
 public class FireStoreConnection {
     private Firestore db;
 
     public FireStoreConnection() throws Exception {
-        FileInputStream serviceAccount = new FileInputStream("src/main/java/org/example/ecpe205-evangelio-firebase-adminsdk-fbsvc-361fb645da.json");
+        FileInputStream serviceAccount = new FileInputStream("");
         FirebaseOptions options = new FirebaseOptions.Builder()
                 .setCredentials(GoogleCredentials.fromStream(serviceAccount))
                 .setDatabaseUrl("https://ecpe205-evangelio-default-rtdb.asia-southeast1.firebasedatabase.app/")
@@ -28,24 +29,59 @@ public class FireStoreConnection {
         this.db = FirestoreClient.getFirestore();
     }
 
-    public List<Object[]> getEmployeeTableRows() throws ExecutionException, InterruptedException {
-        List<Object[]> rows = new ArrayList<>();
+    public void addEmployeeToFirestore(Employee employee) {
+        CollectionReference employees = db.collection("Employees");
 
-        ApiFuture<QuerySnapshot> query = db.collection("Employees").get();
-        QuerySnapshot querySnapshot = query.get();
+        Map<String, Object> employeeData = new HashMap<>();
+        employeeData.put("Id", employee.getId());
+        employeeData.put("Name", employee.getName());
+        employeeData.put("Position", employee.getPosition());
+        employeeData.put("Daily Salary", employee.getDailySalary());
+        employeeData.put("Days Present", employee.getDaysPresent());
+        employeeData.put("Days Absent", employee.getDaysAbsent());
 
-        for (DocumentSnapshot document : querySnapshot.getDocuments()) {
-            Object[] row = new Object[] {
-                    document.getString("id"),
-                    document.getString("name"),
-                    document.getString("position"),
-                    document.getDouble("dailySalary"),
-                    document.getDouble("daysPresent")
-            };
-            rows.add(row);
+        DocumentReference docRef = employees.document(employee.getId());
+        ApiFuture<WriteResult> result = docRef.set(employeeData);
+    }
+
+    public List<Employee> getAllEmployeesFromFirestore() throws Exception {
+        List<Employee> employees = new ArrayList<>();
+        CollectionReference employeesCollection = db.collection("Employees");
+
+        ApiFuture<QuerySnapshot> future = employeesCollection.get();
+        QuerySnapshot querySnapshot = future.get();
+
+        for (QueryDocumentSnapshot document : querySnapshot.getDocuments()) {
+            Employee employee = new Employee(
+                    document.getString("Id"),
+                    document.getString("Name"),
+                    document.getString("Position"),
+                    document.getDouble("Daily Salary"),
+                    document.getDouble("Days Present"),
+                    document.getDouble("Days Absent")
+            );
+            employees.add(employee);
         }
 
-        return rows;
+        return employees;
+    }
+
+    public void deleteEmployeeFromFirestore(String employeeId) throws Exception {
+        db.collection("Employees").document(employeeId).delete().get();
+    }
+
+    public void updateEmployeeInFirestore(Employee employee) throws Exception {
+        DocumentReference docRef = db.collection("Employees").document(employee.getId());
+
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("Name", employee.getName());
+        updates.put("Position", employee.getPosition());
+        updates.put("Daily Salary", employee.getDailySalary());
+        updates.put("Days Present", employee.getDaysPresent());
+        updates.put("Days Absent", employee.getDaysAbsent());
+
+        ApiFuture<WriteResult> result = docRef.update(updates);
+        result.get();
     }
 
     public List<Object[]> getPayrollRecords() throws ExecutionException, InterruptedException {
@@ -73,27 +109,5 @@ public class FireStoreConnection {
         }
 
         return records;
-    }
-
-    public void addEmployee(Employee employee, Payslip payslip) throws ExecutionException, InterruptedException {
-        Map<String, Object> data = new LinkedHashMap<>();
-        data.put("id", employee.getId());
-        data.put("name", employee.getName());
-        data.put("position", employee.getPosition());
-        data.put("dailySalary", employee.getDailySalary());
-        data.put("daysPresent", employee.getDaysPresent());
-        data.put("grossPay", employee.computeGrossSalary());
-
-        // Deductions
-        data.put("pagIbig", payslip.getPagIbig());
-        data.put("philHealth", payslip.getPhilHealth());
-        data.put("sss",payslip.getSss());
-        data.put("incomeTax", payslip.getIncomeTax());
-        data.put("deductions", payslip.getTotalDeductions());
-
-        // Net pay
-        data.put("netPay", payslip.getNetPay());
-
-        db.collection("Employees").document(employee.getId()).set(data).get();
     }
 }

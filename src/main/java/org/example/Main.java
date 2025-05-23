@@ -6,14 +6,19 @@ import java.util.List;
 public class Main {
     public static void main(String[] args) {
 
-            PayrollManager manager = new PayrollManager();
-            GUIFrame frame = new GUIFrame(manager);
-            frame.setTitle("Payroll System");
+        PayrollManager manager = new PayrollManager();
+        GUIFrame frame = new GUIFrame(manager);
+        frame.setTitle("Payroll System");
 
         try {
-             new FireStoreConnection(); // One-time init
+            FireStoreConnection firestore = new FireStoreConnection();
+            List<Employee> employees = firestore.getAllEmployeesFromFirestore();
+            frame.tableModel.addAllEmployees(employees);
         } catch (Exception e) {
             e.printStackTrace();
+            JOptionPane.showMessageDialog(frame,
+                    "Error loading initial data: " + e.getMessage(),
+                    "Firestore Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 }
