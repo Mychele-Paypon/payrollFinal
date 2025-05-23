@@ -51,4 +51,6 @@ public class Payslip {
     public double getNetPay() {
         return grossSalary - (sss + philHealth + pagIbig + incomeTax);
     }
+
+
 }

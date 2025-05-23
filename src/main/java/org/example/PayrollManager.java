@@ -9,23 +9,12 @@ public class PayrollManager {
 
     public PayrollManager() {
         employees = new ArrayList<>();
-//        payslips = new ArrayList<>();
     }
 
     public void addEmployee(Employee employee) {
         employees.add(employee);
-//        printPayslip(employee);
     }
-//    public void updatePayslip(Employee updatedEmployee) {
-//        int index = employees.indexOf(updatedEmployee);
-//        if (index >= 0) {
-//            payslips.set(index, new Payslip(updatedEmployee));
-//        }
-//    }
-//    public Payslip getPayslipForEmployee(Employee employee) {
-//        int index = employees.indexOf(employee);
-//        return (index >= 0 && index < payslips.size()) ? payslips.get(index) : null;
-//    }
+
 
     public Payslip generatePayslip(Employee employee) {
         // Validate employee exists in the system first

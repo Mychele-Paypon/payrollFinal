@@ -89,10 +89,15 @@ public class GUIFrame extends JFrame {
                     double daysPresent = Double.parseDouble(daysPresentField.getText());
                     double daysAbsent = Double.parseDouble(daysAbsentField.getText());
 
+                    if (name.isEmpty() || id.isEmpty() || position.isEmpty()) {
+                        throw new IllegalArgumentException("Please fill in all text fields");
+                    }
+
                     Employee employee = new Employee(id, name, position, dailySalary, daysPresent, daysAbsent);
+                    Payslip payslip = new Payslip(employee);
 
                     FireStoreConnection firestore = new FireStoreConnection();
-                    firestore.addEmployeeToFirestore(employee);
+                    firestore.addEmployeeToFirestore(employee, payslip);
                     tableModel.addEmployee(employee);
 
 
@@ -155,14 +160,6 @@ public class GUIFrame extends JFrame {
                                 "No Selection", JOptionPane.WARNING_MESSAGE);
                         return;
                     }
-                    selectedRow = employeeTable.getSelectedRow();
-
-                    if (selectedRow == -1) {
-                        JOptionPane.showMessageDialog(null,
-                                "Please select an employee to edit",
-                                "No Selection", JOptionPane.WARNING_MESSAGE);
-                        return;
-                    }
 
                     int modelRow = employeeTable.convertRowIndexToModel(selectedRow);
                     employeeBeingEdited = tableModel.getEmployeeAt(modelRow);
@@ -179,7 +176,6 @@ public class GUIFrame extends JFrame {
                     editButton.setText("Save");
 
                 } else {
-
                     try {
                         int selectedRow = employeeTable.getSelectedRow();
                         if (selectedRow == -1) throw new Exception("No employee selected");
@@ -198,7 +194,8 @@ public class GUIFrame extends JFrame {
 
                         // Update in Firestore
                         FireStoreConnection firestore = new FireStoreConnection();
-                        firestore.updateEmployeeInFirestore(updatedEmployee);
+                        Payslip payslip = new Payslip(updatedEmployee);
+                        firestore.updateEmployeeInFirestore(updatedEmployee, payslip);
 
                         // Update in local table
                         tableModel.updateEmployeeAt(modelRow, updatedEmployee);
@@ -230,11 +227,8 @@ public class GUIFrame extends JFrame {
                     try {
                         int modelRow = employeeTable.convertRowIndexToModel(selectedRow);
                         Employee emp = tableModel.getEmployeeAt(modelRow);
+                        Payslip payslip = new Payslip(emp);
 
-                        // Generate fresh payslip instead of trying to get from list
-                        Payslip payslip = new Payslip(emp); // Create new Payslip directly
-
-                        // Create and show the enhanced PayslipViewFrame
                         new PayslipViewFrame(emp, payslip).setVisible(true);
 
                     } catch (IndexOutOfBoundsException ex) {
@@ -287,20 +281,6 @@ public class GUIFrame extends JFrame {
 
     }
 
-
-    private void computePayroll() {
-
-        String id = idField.getText();
-        String name = nameField.getText();
-        String position = positionField.getText();
-        double dailySalary = Double.parseDouble(dailySalaryField.getText());
-        double daysPresent = Double.parseDouble(daysPresentField.getText());
-        double daysAbsent = Double.parseDouble(daysAbsentField.getText());
-
-        Employee employee = new Employee(id, name, position, dailySalary, daysPresent, daysAbsent);
-        payrollManager.addEmployee(employee);
-    }
-
     private void clearInputFields() {
         idField.setText("");
         nameField.setText("");
@@ -330,28 +310,3 @@ public class GUIFrame extends JFrame {
         container.add(component, constraints);
     }
 }
-
-//   private void loadPayrollFromFirestore() {
-//        try {
-//            FireStoreConnection firestore = new FireStoreConnection();
-//            List<Object[]> records = firestore.getPayrollRecords();
-//
-//            String[] columnNames = {
-//                    "ID", "Name", "Position", "Daily Salary", "Days Present",
-//                    "Gross Pay", "Pag-IBIG", "PhilHealth", "SSS", "Income Tax",
-//                    "Deductions", "Net Pay"
-//            };
-//
-//            DefaultTableModel model = new DefaultTableModel(columnNames, 0);
-//
-//            for (Object[] row : records) {
-//                model.addRow(row);
-//            }
-//
-//            employeeTable.setModel(model);
-//
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            JOptionPane.showMessageDialog(this, "Failed to load payroll data from Firestore.", "Error", JOptionPane.ERROR_MESSAGE);
-//        }
-//    }
