@@ -89,27 +89,27 @@ public class PayslipViewFrame extends JFrame {
 //            deductionArea.append(sssLabel.getText() + "\n");
 //            deductionArea.append(philHealth.getText() + "\n");
 //            deductionArea.append(pagIbig.getText() + "\n");
-            deductionArea.append(String.format("SSS: ₱%.2f\n", payslip.getSss()));
-            deductionArea.append(String.format("PhilHealth: ₱%.2f\n", payslip.getPhilHealth()));
-            deductionArea.append(String.format("Pag-IBIG: ₱%.2f\n", payslip.getPagIbig()));
+            deductionArea.append(String.format("SSS: ₱%,.2f\n", payslip.getSss()));
+            deductionArea.append(String.format("PhilHealth: ₱%,.2f\n", payslip.getPhilHealth()));
+            deductionArea.append(String.format("Pag-IBIG: ₱%,.2f\n", payslip.getPagIbig()));
             deductionArea.append("\n");
-            deductionArea.append(String.format("Income Tax: ₱%.2f", payslip.getIncomeTax()));
+            deductionArea.append(String.format("Income Tax: ₱%,.2f", payslip.getIncomeTax()));
 
         addToContainer(container, earningLabel, 1, 5);
         addToContainer(container, new JScrollPane(earningArea),1,6);
 //        earningArea.append(dailyRate.getText() + "\n");
 //        earningArea.append(daysPresent.getText() + "\n");
 //        earningArea.append(grossIncome.getText());
-        earningArea.append(String.format("Daily Rate: ₱%.2f\n", emp.getDailySalary()));
-        earningArea.append(String.format("Days Present: %.0f\n", emp.getDaysPresent()));
-        earningArea.append(String.format("Gross Income: ₱%.2f\n", payslip.getGrossSalary()));
+        earningArea.append(String.format("Daily Rate: ₱%,.2f\n", emp.getDailySalary()));
+        earningArea.append(String.format("Days Present: %,.0f\n", emp.getDaysPresent()));
+        earningArea.append(String.format("Gross Income: ₱%,.2f\n", payslip.getGrossSalary()));
 
         addToContainer(container, new JLabel("====================================================="),0,7,2,1);
 
         addToContainer(container, summaryLabel, 0, 8);
         addToContainer(container, new JScrollPane(summaryArea), 0,9,2,1);
-            summaryArea.append(String.format("Total Deductions: ₱%.2f\n", payslip.getTotalDeductions()));
-            summaryArea.append(String.format("Net Pay: ₱%.2f\n", payslip.getNetPay()));
+            summaryArea.append(String.format("Total Deductions: ₱%,.2f\n", payslip.getTotalDeductions()));
+            summaryArea.append(String.format("Net Pay: ₱%,.2f\n", payslip.getNetPay()));
 
         addToContainer(container, employer, 0,10);
         addToContainer(container, employee, 1,10);
