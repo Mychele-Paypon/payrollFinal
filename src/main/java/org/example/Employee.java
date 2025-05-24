@@ -1,5 +1,8 @@
 package org.example;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Employee {
     private String id;
     private String name;
@@ -7,6 +10,9 @@ public class Employee {
     private double dailySalary;
     private double daysPresent;
     private double daysAbsent;
+
+    private List<Payslip> payslips = new ArrayList<>();
+
 
     public Employee(String id, String name, String position, double dailySalary, double daysPresent, double daysAbsent) {
         this.id = id;
@@ -67,5 +73,19 @@ public class Employee {
 
     public double computeGrossSalary() {
         return dailySalary * daysPresent;
+    }
+
+    public double getAnnualGrossSalary() {
+        double monthlyGross = this.dailySalary * this.daysPresent;
+        return monthlyGross * 12;
+    }
+
+
+    public double getAnnualTax() {
+        if (payslips.isEmpty()) {
+            Payslip tempPayslip = new Payslip(this);
+            return tempPayslip.getIncomeTax() * 12;
+        }
+        return payslips.stream().mapToDouble(Payslip::getIncomeTax).sum();
     }
 }

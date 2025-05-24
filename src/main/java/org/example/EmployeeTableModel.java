@@ -17,6 +17,10 @@ public class EmployeeTableModel extends AbstractTableModel {
         this.payslips = new ArrayList<>();
     }
 
+    public List<Employee> getEmployees(){
+        return new ArrayList<>(employees);
+    }
+
     @Override
     public int getRowCount() {
         return employees.size();
