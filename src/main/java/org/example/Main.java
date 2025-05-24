@@ -20,5 +20,12 @@ public class Main {
                     "Error loading initial data: " + e.getMessage(),
                     "Firestore Error", JOptionPane.ERROR_MESSAGE);
         }
+
+        //ma gana man ni ayhan bisan indi ko ma access ang firebase?
+        //..what
+        //PLEASE LANG PLEASE
+        //wait lang i test tanan!!!!!!
+
+
     }
 }
