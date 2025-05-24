@@ -249,33 +249,25 @@ public class GUIFrame extends JFrame {
         });
 
 
+
         reportButton.addActionListener(new ActionListener() {
+            @Override
             public void actionPerformed(ActionEvent e) {
-                List<Payslip> payslips = payrollManager.getPayslips();
-                double totalGross = 0, totalPagIbig = 0, totalPhilHealth = 0, totalSSS = 0, totalTax = 0, totalNet = 0;
 
-                for (Payslip slip : payslips) {
-                    totalGross += slip.getGrossSalary();
-                    totalPagIbig += slip.getPagIbig();
-                    totalPhilHealth += slip.getPhilHealth();
-                    totalSSS += slip.getSss();
-                    totalTax += slip.getIncomeTax();
-                    totalNet += slip.getNetPay();
+                try{
+                    List<Employee> employees = tableModel.getEmployees(); // Your existing list
+                    if (employees.isEmpty()) {
+                        JOptionPane.showMessageDialog(null, "No employees found.");
+                        return;
+                    }
+                    new YearEndReportFrame(employees);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(null,
+                            "Error: " + ex.getMessage(),
+                            "Report Error",
+                            JOptionPane.ERROR_MESSAGE);
                 }
-
-                StringBuilder report = new StringBuilder();
-                report.append("=============================================\n");
-                report.append("              YEAR-END REPORT\n");
-                report.append("=============================================\n");
-                report.append(String.format("Total Gross Pay: ₱%,.2f\n", totalGross));
-                report.append(String.format("Total Pag-IBIG Contributions: ₱%,.2f\n", totalPagIbig));
-                report.append(String.format("Total PhilHealth Contributions: ₱%,.2f\n", totalPhilHealth));
-                report.append(String.format("Total SSS Contributions: ₱%,.2f\n", totalSSS));
-                report.append(String.format("Total Income Tax: ₱%,.2f\n", totalTax));
-                report.append(String.format("Total Net Pay: ₱%,.2f\n", totalNet));
-                report.append("=============================================\n");
-
-                new YearEndReportFrame(report.toString()); // display on a new frame
             }
         });
 

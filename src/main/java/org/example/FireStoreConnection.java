@@ -18,10 +18,10 @@ public class FireStoreConnection {
     private Firestore db;
 
     public FireStoreConnection() throws Exception {
-        FileInputStream serviceAccount = new FileInputStream("src/main/java/org/example/ecpe205-evangelio-firebase-adminsdk-fbsvc-5f87d0cd20.json");
+        FileInputStream serviceAccount = new FileInputStream("src/main/java/org/example/first-f22fd-firebase-adminsdk-fbsvc-0035f7a780.json");
         FirebaseOptions options = new FirebaseOptions.Builder()
                 .setCredentials(GoogleCredentials.fromStream(serviceAccount))
-                .setDatabaseUrl("https://ecpe205-evangelio-default-rtdb.asia-southeast1.firebasedatabase.app/")
+                .setDatabaseUrl("https://first-f22fd-default-rtdb.asia-southeast1.firebasedatabase.app/")
                 .build();
 
         if (FirebaseApp.getApps().isEmpty()) {
