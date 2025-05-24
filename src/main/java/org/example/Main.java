@@ -21,6 +21,6 @@ public class Main {
                     "Firestore Error", JOptionPane.ERROR_MESSAGE);
         }
 
-        
+
     }
 }

@@ -30,7 +30,7 @@ public class PayslipViewFrame extends JFrame {
 
     public PayslipViewFrame(Employee emp, Payslip payslip) {
         setTitle("Employee Payslip");
-        setSize(500, 500);
+        setSize(425, 350);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
@@ -43,7 +43,7 @@ public class PayslipViewFrame extends JFrame {
         // for date issued
         DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("MMMM d, yyyy");
         String currentDate = LocalDate.now().format(dateFormat);
-        dateIssued = new JLabel("Date Issued: " + currentDate);
+        dateIssued = new JLabel("Date Issued: " + currentDate, JLabel.RIGHT);
             dateIssued.setFont(new Font(SANS_SERIF, PLAIN, 12));
 
         employeeName = new JLabel("Employee: " + emp.getName());
