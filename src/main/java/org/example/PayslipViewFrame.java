@@ -31,6 +31,7 @@ public class PayslipViewFrame extends JFrame {
     public PayslipViewFrame(Employee emp, Payslip payslip) {
         setTitle("Employee Payslip");
         setSize(425, 350);
+        setResizable(false);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 

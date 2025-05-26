@@ -28,6 +28,7 @@ public class YearEndReportFrame extends JFrame {
     public YearEndReportFrame(List<Employee> employees) {
         setTitle("Year-End Tax Report");
         setSize(425, 450);
+        setResizable(false);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
